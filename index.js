@@ -1,12 +1,13 @@
 const app = require('express')()
-const bodyParser = require('body-parser')
+const db = require('./config/db')
+const consign = require('consign')
 
-app.use(bodyParser.json())
+consign()
+  .then('./config/middlewares.js')
+  .into(app)
 
-app.get('/', (req, res) => {
-  res.status(200).send('OK!')
-})
+app.db = db
 
 app.listen(3000, () => {
-  console.log('Listen to port 3000')
+  console.log('Server running at port 3000...')
 })
