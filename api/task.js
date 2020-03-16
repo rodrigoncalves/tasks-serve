@@ -52,7 +52,7 @@ module.exports = app => {
             .catch(err => res.status(500).json(err))
     }
 
-    const toggleTask = (req, res) => {
+    const doneTask = (req, res) => {
         app.db('tasks')
             .where({ id: req.params.id, userId: req.user.id })
             .first()
@@ -62,11 +62,25 @@ module.exports = app => {
                     return res.status(404).send(msg)
                 }
 
-                const doneAt = task.doneAt ? null : new Date()
-                updateTaskDoneAt(req, res, doneAt)
+                updateTaskDoneAt(req, res, new Date())
             })
             .catch(err => res.status(500).send(err))
     }
 
-    return { getTasks, save, remove, toggleTask }
+    const undoneTask = (req, res) => {
+        app.db('tasks')
+            .where({ id: req.params.id, userId: req.user.id })
+            .first()
+            .then(task => {
+                if (!task) {
+                    const msg = `Task não encontrada com id: ${req.params.id}.`
+                    return res.status(404).send(msg)
+                }
+
+                updateTaskDoneAt(req, res, null)
+            })
+            .catch(err => res.status(500).send(err))
+    }
+
+    return { getTasks, save, remove, doneTask, undoneTask }
 }
