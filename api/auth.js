@@ -12,7 +12,7 @@ module.exports = app => {
 
         const user = await app
             .db('users')
-            .where({ email })
+            .whereRaw('LOWER(email) = LOWER(?)', email)
             .first()
 
         if (user) {
