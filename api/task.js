@@ -8,11 +8,10 @@ module.exports = app => {
                 .endOf('day')
                 .toDate()
 
-        tasks = app
-            .db('tasks')
+        app.db('tasks')
             .where({ userId: req.user.id })
-            .where('esimateAt', '<=', date)
-            .order('esimateAt')
+            .where('estimateAt', '<=', date)
+            .orderBy('estimateAt')
             .then(tasks => res.json(tasks))
             .catch(err => res.status(500).json(err))
     }
@@ -38,10 +37,36 @@ module.exports = app => {
                 if (rowsDeleted > 0) {
                     res.status(204).send()
                 } else {
-                    const msg = `Não foi encontrada task com id: ${req.params.id}.`
+                    const msg = `Task não encontrada com id: ${req.params.id}.`
                     res.status(404).send(msg)
                 }
             })
             .catch(err => res.status(500).json(err))
     }
+
+    const updateTaskDoneAt = (req, res, doneAt) => {
+        app.db('tasks')
+            .where({ id: req.params.id, userId: req.user.id })
+            .update({ doneAt })
+            .then(_ => res.status(204).send())
+            .catch(err => res.status(500).json(err))
+    }
+
+    const toggleTask = (req, res) => {
+        app.db('tasks')
+            .where({ id: req.params.id, userId: req.user.id })
+            .first()
+            .then(task => {
+                if (!task) {
+                    const msg = `Task não encontrada com id: ${req.params.id}.`
+                    return res.status(404).send(msg)
+                }
+
+                const doneAt = task.doneAt ? null : new Date()
+                updateTaskDoneAt(req, res, doneAt)
+            })
+            .catch(err => res.status(500).send(err))
+    }
+
+    return { getTasks, save, remove, toggleTask }
 }
